@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="UTF-8">
+      <title>TA API</title>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script>
+         $(document).ready(function() {
+             // Register a new user
+             $("#register-form").submit(function(event) {
+                 event.preventDefault();
+                 var username = $("#register-username").val();
+                 var password = $("#register-password").val();
+                 $.ajax({
+                     type: "POST",
+                     url: "/register",
+                     contentType: "application/json",
+                     data: JSON.stringify({"username": username, "password": password}),
+                     success: function(data) {
+                         alert(data.message);
+                     },
+                     error: function(error) {
+                         alert(error.responseJSON.message);
+                     }
+                 });
+             });
+             
+             // Login with an existing user
+             $("#login-form").submit(function(event) {
+                 event.preventDefault();
+                 var username = $("#login-username").val();
+                 var password = $("#login-password").val();
+                 $.ajax({
+                     type: "POST",
+                     url: "/login",
+                     contentType: "application/json",
+                     data: JSON.stringify({"username": username, "password": password}),
+                     success: function(data) {
+                         localStorage.setItem("access_token", data.access_token);
+                         alert("Logged in successfully");
+                     },
+                     error: function(error) {
+                         alert(error.responseJSON.message);
+                     }
+                 });
+             });
+             
+             // Create a new TA record
+             $("#create-ta-form").submit(function(event) {
+                 event.preventDefault();
+                 var access_token = localStorage.getItem("access_token");
+                 var native_english_speaker = $("#ta-native-english-speaker").val() == "true";
+                 var course_instructor = $("#ta-course-instructor").val();
+                 var course = $("#ta-course").val();
+                 var semester = $("#ta-semester").val();
+                 var class_size = parseInt($("#ta-class-size").val());
+                 var performance_score = parseFloat($("#ta-performance-score").val());
+                 $.ajax({
+                     type: "POST",
+                     url: "/api/tas",
+                     headers: {"Authorization": "Bearer " + access_token},
+                     contentType: "application/json",
+                     data: JSON.stringify({"native_english_speaker": native_english_speaker,
+                                            "course_instructor": course_instructor,
+                                            "course": course,
+                                            "semester": semester,
+                                            "class_size": class_size,
+                                            "performance_score": performance_score}),
+                     success: function(data) {
+                         alert(data.message);
+                     },
+                     error: function(error) {
+                         alert(error.responseJSON.message);
+                     }
+                 });
+             });
+
+
+             $(document).ready(function() {
+              $.ajax({
+                  url: '/api/tas',
+                  type: 'GET',
+                  headers: {
+                      'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                  },
+                  success: function(data) {
+                      $('#tas-list').html(JSON.stringify(data));
+                  },
+                  error: function(xhr, status, error) {
+                      alert(xhr.responseText);
+                  }
+              });
+          });
+            
+              
+
+                            
+      </script>
+   </head>
+   <body>
+      <h1>TA API</h1>
+      <h2>Register</h2>
+      <form id="register-form">
+         <label>Username:</label>
+         <input type="text" id="register-username"><br>
+         <label>Password:</label>
+         <input type="password" id="register-password"><br>
+         <input type="submit" value="Register">
+      </form>
+      <h2>Login</h2>
+      <form id="login-form">
+         <label>Username:</label>
+         <input type="text" id="login-username"><br>
+         <label>Password:</label>
+         <input type="password" id="login-password"><br>
+         <input type="submit" value="Login">
+      </form>
+      <h2>Create TA Record</h2>
+      <form id="create-ta-form">
+         <label>Native English Speaker:</label>
+         <select id="ta-native-english-speaker">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+         </select>
+         <br>
+         <label>Course Instructor:</label>
+         <input type="text" id="ta-course-instructor"><br>
+         <label>Course:</label>
+         <input type="text" id="ta-course"><br>
+         <label>Semester:</label>
+         <input type="text" id="ta-semester"><br>
+         <label>Class Size:</label>
+         <input type="number" id="ta-class-size"><br>
+         <label>Performance Score:</label>
+         <input type="number" step="0.01" id="ta-performance-score"><br>
+         <input type="submit" value="Create TA Record">
+      </form>
+      <h1>TA Table</h1>
+      <div id="tas-list"></div>
+      
+
+   </body>
+</html>
